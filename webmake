@@ -1,0 +1,7 @@
+#!/bin/bash
+make clean
+cd webserver
+sudo ./makefsdata
+sudo ./makestrings
+cd ..
+make

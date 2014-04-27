@@ -1,0 +1,44 @@
+<script type="text/javascript">
+
+function loadXMLDoc(header_str, return_func) { 
+  //eg. "readme.txt?var1="+100+"&var2="+200
+  //eg. messageDivFill
+  
+  var xmlhttp;
+
+  if (window.XMLHttpRequest) {
+    xmlhttp = new XMLHttpRequest();
+  } else {
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+
+  xmlhttp.onreadystatechange = function(){
+  	return_func(xmlhttp);
+  };
+
+  xmlhttp.open("GET",header_str,true);
+  xmlhttp.send();
+} 
+
+function messageDivFill(xmlhttp) {
+  
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+      document.getElementById("ajaxMsgDiv").innerHTML=xmlhttp.responseText;
+    }
+} 
+
+function zeropad(x, nchars) {
+   
+    var str = '' + x;
+    while (str.length < nchars) {
+        str = '0' + str;
+    }
+    return str;
+}
+
+function urlVarString(a,b,c,d) {
+	var str = '?a='+zeropad(a,3)+'&b='+zeropad(b,3)+'&c='+zeropad(c,3)+'&d='+zeropad(d,3);
+	return str;
+}
+
+</script>

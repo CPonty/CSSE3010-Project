@@ -1,0 +1,8 @@
+      <br />
+      <input id="check_gamepad" type="checkbox" /> Use gamepad <br />
+      <input id="check_motors" type="checkbox" /> Use motors <br />
+      <input id="check_send" type="checkbox" onchange="autosend = this.checked;"/> Automatic Send <br />
+      <input id="check_fetch" type="checkbox" onchange="autofetch = this.checked;"/> Automatic Fetch <br />
+      <input id="button_send" type="button" value="Send" onclick="readControls(); sendControls();" /> &nbsp; 
+      <input id="button_fetch" type="button" value="Fetch" onclick='loadJson();' /><br/>
+      <input id="button_reset" type="button" value="Center Axes" onclick="writeSliders(127,127,127);" />

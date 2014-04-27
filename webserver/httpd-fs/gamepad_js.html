@@ -1,0 +1,84 @@
+<script type="text/javascript">
+
+var gamepad_interface = {
+	MAX_BUTTONS: 16,
+	MAX_AXES: 4,
+	BUTTON_DEPTH_MIN: 0.66,
+	SHOW_ALERTS: false,
+	devices: [], 
+	devices_connection_previous: [],
+	timestamp_lastupdate: null,
+	supported: false,
+	polling:   false,
+	update_handler: function(h){},
+	startup: function() {
+		gamepad_interface.supported = (
+			!!navigator.webkitGetGamepads || !!navigator.webkitGamepads);
+		if (gamepad_interface.supported) {
+			if (gamepad_interface.SHOW_ALERTS) {
+				alert('Gamepads supported in this browser :D');
+			}
+			gamepad_interface.polling = true;
+			gamepad_interface.mainLoop();
+			
+		} else {
+			if (gamepad_interface.SHOW_ALERTS) {
+				alert('No gamepad support :(');
+			}
+		}
+	},
+	stop: function() {
+		gamepad_interface.polling = false;
+	},
+	setUpdateHandler: function(h) {
+		gamepad_interface.update_handler = h;
+	},
+	mainLoop: function() {
+		var devices_polled = [];
+		var state_changed = false;
+		var handler_called = false;
+		var device_count_before = gamepad_interface.devices.length;
+		if (navigator.getGamepads) {
+			devices_polled = navigator.getGamepads();
+		} else {
+			devices_polled = navigator.webkitGetGamepads();
+		}
+		if (devices_polled) {
+			gamepad_interface.devices = [];
+			for (var i=0; i<devices_polled.length; i++) {
+				var connection = typeof devices_polled[i];
+				if (connection != gamepad_interface.devices_connection_previous) {
+					state_changed = true;
+					gamepad_interface.devices_connection_previous = connection;
+				}
+				if (devices_polled[i]) {
+					gamepad_interface.devices.push(devices_polled[i]);
+				}
+				if (state_changed) {
+					handler_called = true;
+					gamepad_interface.update_handler(gamepad_interface.devices);
+				}
+			}
+		}
+		if (gamepad_interface.devices.length >= 1) {
+			var g = gamepad_interface.devices[0];
+			if (g.timestamp && (g.timestamp == gamepad_interface.timestamp_last)) {
+			} else {
+				gamepad_interface.timestamp_last = g.timestamp;
+				if (!handler_called) {
+					gamepad_interface.update_handler(gamepad_interface.devices);
+				}
+			}
+		} else if (device_count_before>0 && gamepad_interface.devices.length==0) {
+			gamepad_interface.update_handler(gamepad_interface.devices);
+		}
+		if (gamepad_interface.polling) {
+			if (window.requestAnimationFrame) {
+				window.requestAnimationFrame(gamepad_interface.mainLoop);
+			} else if (window.webkitRequestAnimationFrame) {
+				window.webkitRequestAnimationFrame(gamepad_interface.mainLoop);
+			}
+		}
+	}
+}
+</script>

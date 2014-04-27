@@ -1,0 +1,104 @@
+<script type="text/javascript">
+
+  	  //remember the state of buttons, to detect press-down events.
+  	  var prevButtons = new Array(16);
+  	  for (var i=0; i<16; i++) {prevButtons[i]=0;}
+  	  
+  	  //function to detect a rising edge.
+  	  function pressed(bValBefore, bValAfter) {
+  	  	return (bValBefore<0.1 && bValAfter>0.9);
+  	  }
+  
+      function gamepad_client(d) {
+      
+      	//what do when gamepad state changes?
+      	//d = devices[n], the gamepad objects.
+      	//devices:
+      	//	<float>buttons[16];
+      	//	<float>axes[4];
+      	//	<string>id;
+      	//  <int>index;
+      	//  <timestamp>timestamp;
+      	
+        if (d==null) {
+        	document.getElementById("gamepadText").innerHTML = "null/error";
+        }
+        else if (d.length==0) {
+      		document.getElementById("gamepadText").innerHTML = "No gamepad connected.";
+      		
+      		// Set the button state variables to 0
+      		for (var i=0; i<16; i++) {prevButtons[i]=0;}
+      	} 
+      	else {
+      		//main section - new gamepad data is available
+      		
+      		//1. Printout controls important to our application as text
+      		var printout = "";
+      		printout += "ID: " + d[0].id;
+      		printout += "<br/><br/>X: "+(d[0].axes[0]).toFixed(2);
+      		printout += "<br/>Y: "+(-d[0].axes[1]).toFixed(2);
+      		printout += "<br/>Throttle: "+(-d[0].axes[2]).toFixed(2);
+      		printout += "<br/><br/><table class=\"t2\">"
+      		//loop over buttons - make table
+      		for (var i=0; i<6; i++) { //d[0].buttons.length
+      			printout += "<tr><th>B"+(i+1)+": </th><td>"+d[0].buttons[i];
+      			//special notes for particular buttons
+      			if (i==1-1) printout += " (motor power)";
+      			if (i==3-1) printout += " (send controls)";
+      			if (i==4-1) printout += " (fetch telemetry)";
+      			if (i==5-1) printout += " (toggle joystick binding)";
+      			if (i==6-1) printout += " (toggle auto-send)";
+      			printout += "</td></tr>";
+      		}
+      		printout += "</table>";
+      		//put in page
+      		document.getElementById("gamepadText").innerHTML = printout;
+      		
+      		//2. Update controls to the respective widgets
+      		
+      		//handle button 5(4) - toggle joystick binding checkbox
+      		if (pressed(prevButtons[5-1], d[0].buttons[5-1])) {
+      			flipCheckbox("check_gamepad");
+      		}
+      		
+      		//if joystick binding is on
+      		if (document.getElementById("check_gamepad").checked) {
+      			
+      			//handle button 1(0) - set motor power checkbox (always)
+      			writeCheckbox("check_motors", Math.round(d[0].buttons[1-1]));
+      			
+      			//handle button 3(2) - send data
+      			if (pressed(prevButtons[3-1], d[0].buttons[3-1])) {
+      				document.getElementById("button_send").click();
+      			}
+      			
+      			//handle button 4(3) - fetch data update
+      			if (pressed(prevButtons[4-1], d[0].buttons[4-1])) {
+      				document.getElementById("button_fetch").click();
+      			}
+      			
+      			//handle button 6(5) - toggle auto-send data (rising edge)
+      			if (pressed(prevButtons[6-1], d[0].buttons[6-1])) {
+      				flipCheckbox("check_send");
+      			}
+      			
+      			//resample axes 1,2,3(0,1,2) onto pow_slide, dir_slide, alt_slide
+      			writeSliders(
+      				     (d[0].axes[0]+1)*127.5,
+      				255-((d[0].axes[1]+1)*127.5),
+      				255-((d[0].axes[2]+1)*127.5)
+      			);
+      		}
+      		
+      		//record the button states
+      		for (var i=0; i<d[0].buttons.length; i++) {
+      			prevButtons[i] = d[0].buttons[i];
+      		}
+      	}
+      }
+      
+      gamepad_interface.setUpdateHandler(gamepad_client);
+      
+      gamepad_interface.startup();
+      
+</script>

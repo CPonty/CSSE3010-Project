@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Welcome to the uIP web server!</title>
+    <link rel="stylesheet" type="text/css" href="style.css">  
+%!: /ajax_js.html
+  <script type="text/javascript">
+  var json = {};
+  var text = "";
+  function messageDivFillAndEval(xmlhttp) {
+  
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+      document.getElementById("ajaxMsgDiv").innerHTML=xmlhttp.responseText;
+      text = xmlhttp.responseText;
+      //text = text.slice(0,text.length-2);//fixes cgi bug; no longer using cgi
+      eval('json = '+text+'');
+    }
+} 
+  </script>
+  </head>
+  <body bgcolor="#fffeec" text="black">
+%!: /menu.html
+  <div class="contentblock">
+  <p>
+  <button type="button" onclick='loadXMLDoc("helloworld",messageDivFill);'> Get helloworld by uip_send </button>
+  <button type="button" onclick='loadXMLDoc("jsonfetch",messageDivFillAndEval);'> Get JSON by uip_send </button>
+  <span id="ajaxMsgDiv"> Not sent yet. </span>
+  </p>
+  </div>
+  </body>
+</html>

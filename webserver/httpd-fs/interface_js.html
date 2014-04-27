@@ -1,0 +1,105 @@
+<script type="text/javascript">
+
+var motors_on = 0;
+var motor_power = 127;
+var motor_dir = 127;
+var altitude = 127;
+
+var autosend = false;
+var autofetch = false;
+
+function sethtml(id, value) {
+	document.getElementById(id).innerHTML=value;
+}
+
+function readControls() {
+	if (document.getElementById("check_motors").checked) {
+		motors_on = 1;
+	} else {
+		motors_on = 0;
+	}
+	motor_power = document.getElementById("pow_slide").value;
+	motor_dir = document.getElementById("dir_slide").value;
+	altitude = document.getElementById("alt_slide").value;
+}
+
+function writeCheckbox(id, bitvalue) {
+	if (bitvalue==1) {
+		document.getElementById(id).checked = true;
+	} else {
+		document.getElementById(id).checked = false;
+	}
+}
+
+function flipCheckbox(id) {
+	document.getElementById(id).checked = !document.getElementById(id).checked;
+}
+
+function readCheckbox(id) {
+	if (document.getElementById(id).checked = true) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+function writeSliders(a,b,c) {
+	document.getElementById("dir_slide").value = Math.floor(a);
+	sethtml('dir',Math.floor(a));
+	document.getElementById("pow_slide").value = Math.floor(b);
+	sethtml('pow',Math.floor(b));
+	document.getElementById("alt_slide").value = Math.floor(c);
+	sethtml('alt',Math.floor(c));
+}
+
+function sendControls() {
+	loadXMLDoc("json_empty.html"+urlVarString(motors_on,motor_power,motor_dir,altitude),
+		function(){});
+}
+
+function loadJson() {
+	if (!document.getElementById("check_fetch").checked) {
+		loadXMLDoc("jsonfetch",jsonProcessor);
+	}
+}
+
+setInterval(poll, 400);
+var pollCounter = 0;
+var requestTarget = "";
+
+function poll() {
+	pollCounter++;
+	requestTarget = "";
+	readControls();
+	
+	if (pollCounter%3==0) {
+		//re-render graphs
+		shiftGraphs();
+	}
+	
+	if (pollCounter%4==0 && document.getElementById("check_fetch").checked) {
+		//send controls AND request data
+		requestTarget = "jsonfetch";
+		
+	} else if (document.getElementById("check_send").checked) {
+		//send controls
+		requestTarget = "ack.txt";
+	}
+	
+	if (document.getElementById("check_send").checked) {
+		requestTarget = requestTarget + urlVarString(motors_on,motor_power,motor_dir,altitude);
+	}
+	
+	if (requestTarget.indexOf('jsonfetch') !== -1) {
+		loadXMLDoc(requestTarget,jsonProcessor);
+	} else if (requestTarget.indexOf('ack.txt') !== -1) {
+		loadXMLDoc(requestTarget,function(){});
+	} else if (!(requestTarget.length>0)) {
+		//no request
+	} else {
+		console.log('something wrong with ajax target');
+	}
+	
+}
+
+</script>

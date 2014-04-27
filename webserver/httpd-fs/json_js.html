@@ -1,0 +1,138 @@
+<script type="text/javascript">
+  var json = {};
+  var jtext = "";
+  var t = 0;
+  var pan = 0;
+  var dist = 1000;
+  var alt = 1000;
+  var magdir = 0;
+  var vel = 0;
+  var fiducials = [];
+  var blimpx = 1000;
+  var blimpy = 0;
+  var htmlstr = "";
+  var pathx = [];
+  var pathy = [];
+  var pathlen = 20;
+  for (var i=0; i<pathlen; i++) {
+  	pathx.push(blimpx);
+  	pathy.push(blimpy);
+  }
+  
+  function pageRender() {
+  	//redraw all graphics using current vars
+  	
+  	//1. Set clock, bytesize text
+    document.getElementById("timetext").innerHTML=
+      	(t/1000).toFixed(2) + "sec";
+    document.getElementById("bytestext").innerHTML=
+      	jtext.length;
+  	
+  	//2. Print fiducial graphics
+  	htmlstr="<svg id=\"svgfiducials\" width=125 height=125 version=\"1.1\">";
+  	htmlstr+="<rect x=0 y=0 width=125 height=125 style=\"fill:rgb(0,0,255);stroke-width:1;stroke:rgb(0,0,0)\" />";
+  	for (var i=0; i<fiducials.length; i++) {
+  		var fid = fiducials[i];
+  		htmlstr+="<rect x=0 y=0 width=25 height=25 style=\"fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)\" transform=\"translate("+fid["x"]+","+fid["y"]+") rotate("+fid["rot"]+",12.5,12.5)\"/>";
+  		htmlstr+="<line x1=12.5 y1=12.5 x2=12.5 y2=0 style=\"stroke:rgb(255,0,0);stroke-width:2\" transform=\"translate("+fid["x"]+","+fid["y"]+") rotate("+fid["rot"]+",12.5,12.5)\"/>";
+  		htmlstr+="<text x=\""+(fid["x"]+12.5)+"\" y=\""+(fid["y"]+12.5)+"\" fill=\"black\">"+fid["id"]+"</text>";
+  	}
+  	htmlstr+="</svg>";
+  	document.getElementById("f1").innerHTML=htmlstr;
+  	
+  	//3. Print fiducial table
+  	htmlstr="<table id=\"tablefiducials\">";
+  	htmlstr+="<tr><th>ID</th><th>X</th><th>Y</th><th>Rot</th><th>Age</th></tr>";
+  	for (var i=0; i<fiducials.length; i++) {
+  		var fid = fiducials[i];
+  		htmlstr+="<tr><td>"+fid["id"]+"</td><td>"+fid["x"]+"</td><td>"+fid["y"]+"</td><td>"+fid["rot"]+"deg</td><td>"+((t-fid["t"])/1000).toFixed(2)+"sec</td></tr>";
+  	}
+  	htmlstr+="</table>";
+  	document.getElementById("f2").innerHTML=htmlstr;
+  	
+  	//4. Print location graphic
+  	htmlstr="<svg id=\"svgtelemetry\" width=125 height=125 version=\"1.1\">";
+  	htmlstr+="<rect x=0 y=0 width=125 height=125 style=\"fill:rgb(255,255,255);stroke-width:1;stroke:rgb(0,0,0)\" />";
+  	
+  	//turreted camera (rotated rectangle)
+  	htmlstr+="<rect x=0 y=0 width=10 height=20 style=\"fill:rgb(230,230,230);stroke-width:1;stroke:rgb(0,0,0)\" transform=\"translate(57.5,52.5) rotate("+pan+",5,10)\"/>";
+  	
+  	//blimp path (line from push array of 10 values)
+  	for (var i=0; i<pathlen-1; i++) {
+  		htmlstr+="<line x1="+pathx[i]+" y1="+pathy[i]+" x2="+pathx[i+1]+" y2="+pathy[i+1]+" style=\"stroke:rgb(0,255,0);stroke-width:1\"/>";
+  	}
+  	
+  	//blimp (position extrapolated, scaled by altitude)(heading vector)(path calc)
+  	blimpx = dist*Math.cos(pan*Math.PI/180);
+  	blimpy = dist*Math.sin(pan*Math.PI/180);
+  	var x1 = Math.round(62.5+blimpx/50);
+  	var y1 = Math.round(62.5+blimpy/50);
+  	var x2 = x1 + 4*Math.log(Math.abs(vel)+8)*Math.cos(magdir*Math.PI/180);
+  	var y2 = y1 + 4*Math.log(Math.abs(vel)+8)*Math.sin(magdir*Math.PI/180);
+  	for (var i=(pathlen-1); i>0; i--) {
+		pathx[i] = pathx[i-1];
+		pathy[i] = pathy[i-1];
+	}
+	pathx[0] = x1;
+	pathy[0] = y1;
+  	htmlstr+="<circle cx=0 cy=0 r="+Math.round(10+4*(alt-1000)/1000)+" style=\"fill:rgb(0,0,230);stroke-width:1;stroke:rgb(0,0,0)\" transform=\"translate("+x1+","+y1+")\"/>";
+  	
+  	//blimp heading (direction magdir, length scaled by vel)
+  	htmlstr+="<line x1="+x1+" y1="+y1+" x2="+x2+" y2="+y2+" style=\"stroke:rgb(255,0,0);stroke-width:2\"/>";
+  	
+  	htmlstr+="</svg>";
+  	document.getElementById("f3").innerHTML=htmlstr;
+  	
+  	//5. Print telemetry table
+  	htmlstr="<table id=\"tabletelemetry\" class=\"t1\">";
+  	htmlstr+="<tr><th>Alt</th><td>"+(alt/1000).toFixed(2)+"m</td></tr>";
+  	htmlstr+="<tr><th>Hdg</th><td>"+Math.round(magdir)+"deg</td></tr>";
+  	htmlstr+="<tr><th>Range</th><td>"+(dist/1000).toFixed(2)+"m</td></tr>";
+  	htmlstr+="<tr><th>Vel</th><td>"+(vel/1000).toFixed(2)+"m/s</td></tr>";
+  	htmlstr+="</table>";
+  	document.getElementById("f4").innerHTML=htmlstr;
+  	
+  }
+  
+  function jsonProcessor(xmlhttp) {
+  
+    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+      //print text
+      document.getElementById("ajaxMsgDiv").innerHTML=xmlhttp.responseText;
+      //parse json
+      jtext = xmlhttp.responseText;
+      //jtext = jtext.slice(0,jtext.length-2);//fixes cgi bug; no longer using cgi
+      eval('json = '+jtext+'');
+      //check if empty
+      if (Object.keys(json).length > 0) {
+      	//store json
+      	t = json.t;
+      	magdir = json.magdir;
+      	vel = Math.round(2*Math.PI*dist*Math.abs(pan-json.pan)/360)+Math.round(Math.abs(dist-json.dist))+Math.round(Math.abs(alt-json.alt));
+      	dist = json.dist;
+      	alt = json.alt;
+      	pan = json.pan;
+      	fiducials = [];
+      	for (var i=0; i<json.fiducials.length; i++) {
+      		if (json.fiducials[i].id!=-1) {
+      			fiducials.push(json.fiducials[i])
+      		}
+      	}
+      	
+      	//process new info
+      	
+      	//sort the fiducials by ID
+      	function compare(a,b) {
+  			if (a.id < b.id) return -1;
+  			if (a.id > b.id) return 1;
+  			return 0;
+		}
+		fiducials.sort(compare);
+      	
+      	
+      	//page re-render
+      	pageRender();
+      }
+    }
+} 
+</script>

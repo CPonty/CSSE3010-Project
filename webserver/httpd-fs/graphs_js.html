@@ -1,0 +1,68 @@
+<script type="text/javascript">
+
+    //graph push-lists
+    var graph = {"alt":[],"vel":[],"range":[],"heading":[]};
+    var gPointer = 0;
+    var gBuffersize = 20;//length of list
+    
+    //initialise zeros
+    for (var i=0; i<gBuffersize; i++) {
+    	graph.alt.push(0);
+    	graph.vel.push(0);
+    	graph.range.push(0);
+		graph.heading.push(0);
+    }
+	
+	//pushing a value in
+	function pushGraph(glist,val) {
+		for (var i=(glist.length-1); i>0; i--) {
+			glist[i] = glist[i-1];
+		}
+		glist[0] = val;
+		return glist;
+	}
+	
+	//-----------
+	
+    //building a graph
+    function drawGraph(values,ymin,div,title,units) {
+    	var gWidth = 200;
+    	var gHeight = 100-4;
+    	var x = [];
+    	var y = [];
+    	var ymax = Math.max.apply(null,values);
+    	for (var i=0; i<values.length; i++) {
+    		x.push(Math.round(i/(values.length-1)*gWidth));
+    		if (values[i]-ymin==0) {
+    			y.push(ymin);
+    		} else {
+    			y.push(gHeight-Math.round((values[i]-ymin)/(ymax-ymin)*gHeight));
+    		}
+    		//alert(x[i]+' '+y[i]);
+    	}
+    	var htmlstr='<svg width='+gWidth+' height='+(gHeight+4)+' version="1.1">';
+    	htmlstr+='<rect x=0 y=0 width='+gWidth+' height='+(gHeight+4)+' style="fill:rgb(240,240,240); stroke-width:1; stroke:rgb(0,0,0)"/>';
+    	for (var i=0; i<values.length-1; i++) {
+    		if (i>gPointer) {break;}
+    		htmlstr+='<line x1='+x[i]+' y1='+(2+y[i])+' x2='+x[i+1]+' y2='+(2+y[i+1])+' style="stroke:rgb(0,0,255);stroke-width:2"/> ';
+    	}
+    	htmlstr += '<text x="'+Math.round(gWidth/2)+'" y="'+Math.round(gHeight*1/10)+'" fill="black" style="text-anchor:middle;">'+title+'</text>';
+    	htmlstr += '<text x="'+Math.round(gWidth/2)+'" y="'+Math.round(gHeight*9/10)+'" fill="black" style="text-anchor:middle;">'+values[0]+' '+units+'</text>';
+    	htmlstr += '</svg>';
+    	document.getElementById(div).innerHTML = htmlstr;
+    }
+	
+	//refreshing the set of graphs
+	function shiftGraphs() {
+		graph.alt = pushGraph(graph.alt, (alt/1000).toFixed(3));
+		graph.vel = pushGraph(graph.vel, (vel/1000).toFixed(2));
+		graph.range = pushGraph(graph.range, (dist/1000).toFixed(2));
+		graph.heading = pushGraph(graph.heading, Math.round(magdir));
+		gPointer++;
+		drawGraph(graph.alt, 0, "f5", "Altitude Graph","m");
+		drawGraph(graph.vel, -3, "f6", "Velocity Graph","m/s");
+		drawGraph(graph.range, 0, "f7", "Range Graph","m");
+		drawGraph(graph.heading, 0, "f8", "Heading Graph","deg");
+	}
+
+</script>

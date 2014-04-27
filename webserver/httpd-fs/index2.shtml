@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Welcome to the uIP web server!</title>
+    <link rel="stylesheet" type="text/css" href="style.css">  
+%!: /ajax_js.html
+%!: /json_js.html
+%!: /graphs_js.html
+%!: /interface_js.html
+%!: /gamepad_js.html
+  </head>
+  <body bgcolor="#fffeec" text="black">
+%!: /menu.html
+  <div class="contentblock">
+  <p>
+  <button type="button" onclick='loadJson();'> Fetch </button>
+  <span id="ajaxMsgDiv"> No data yet. </span>
+  </p>
+  </div>
+  <div class="contentblock">
+  <table>
+    <tr>
+    	<td><h4>Last message (time after boot):</h4></td>
+    	<td><div id="timetext">?</div></td>
+    	<td><h4>Rx bytes:</h4></td>
+    	<td><div id="bytestext">?</div></td>
+    </tr>
+  </table>
+  </div>
+  <div class="contentblock">
+    <div style="clear: both;"></div>
+    <div id="f1" class="fiducials">
+	  <svg id="svgfiducials" width=125 height=125 version="1.1">
+	  </svg>
+    </div>
+    <div id="f2" class="fiducials">
+      <table id="tablefiducials">
+      </table>
+    </div>
+    <div id="f3" class="fiducials">
+	  <svg id="svgtelemetry" width=125 height=125 version="1.1">
+	  </svg>
+    </div>
+    <div id="f4" class="fiducials">
+      <table id="tabletelemetry" class="t1">
+      </table>
+    </div>
+    <div style="clear: both;"></div>
+  </div>
+  <div class="contentblock">
+    <div id="col1">
+%!: /column1.html
+    </div>
+    <div id="col2">
+%!: /column2.html
+    </div>
+    <div id="col3">
+%!: /column3.html
+    </div>
+    <div style="clear: both;"></div>
+  </div>
+  <div class="contentblock">
+    <div id="f5" class="graphs">
+	  <svg id="svggraph1" width=200 height=100 version="1.1">
+	  </svg>
+    </div>
+    <div id="f6" class="graphs">
+	  <svg id="svggraph2" width=200 height=100 version="1.1">
+	  </svg>
+    </div>
+    <div id="f7" class="graphs">
+	  <svg id="svggraph3" width=200 height=100 version="1.1">
+	  </svg>
+    </div>
+    <div id="f8" class="graphs">
+	  <svg id="svggraph4" width=200 height=100 version="1.1">
+	  </svg>
+    </div>
+    <div style="clear: both;"></div>
+  </div>
+  </body>
+  <script type="text/javascript">
+  	//render update-reliant dynamic content with defaults
+  	pageRender();
+  	//render initial graphs
+	drawGraph(graph.alt, 0, "f5", "Altitude Graph","m");
+	drawGraph(graph.vel, -3, "f6", "Velocity Graph","m/s");
+	drawGraph(graph.range, 0, "f7", "Distance Graph","m");
+	drawGraph(graph.heading, 0, "f8", "Heading Graph","deg");
+  </script>
+%!: /gpclient_js.html
+</html>
