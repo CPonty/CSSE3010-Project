@@ -10,5 +10,5 @@ Final project for UQ's *CSSE3010 - Embedded Systems Design and Interfacing* cour
 **Build:** `./webmake`
 
 Some files required to build this project are not included in this repository
- - ARM libraries (property of ARM) 
- - nrf24l01plus radio driver (property of UQ)
+ - AT91SAM library (property of Atmel) 
+ - nRF24L01+ radio driver (property of UQ)
